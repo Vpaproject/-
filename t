@@ -2,7 +2,7 @@
 MyScriptName='KinGmapua'
 # Your SSH Banner
 SSH_Banner='https://raw.githubusercontent.com/itsgelogomayee/dpndncy/master/banner'
-OpenVPN_Port1='4443'
+OpenVPN_Port1='25333'
 OpenVPN_Port2='25222'
 OvpnDownload_Port='81'
 # Server local time
@@ -874,7 +874,7 @@ fi
 
 #PORT SERVER
 read -e -p 'Input your Server IP: ' -i $SERVER_IP SERVER_IP
-read -e -p 'Input OpenVPN TCP Port: ' -i '4443' OPENVPN_PORT
+read -e -p 'Input OpenVPN TCP Port: ' -i '1' OPENVPN_PORT
 read -e -p 'Input Privoxy Port: ' -i '8787' PRIVOXY_PORT
 read -e -p 'Input ohpserver Port: ' -i '7752' OHP_PORT
 read -e -p 'Input stunnel Port: ' -i '443' STUNNEL_PORT
