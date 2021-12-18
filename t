@@ -562,7 +562,6 @@ mySquid
 
  # Starting Proxy server
  echo -e "Restarting proxy server.."
- systemctl restart privoxy
  systemctl restart squid
 }
 
