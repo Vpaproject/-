@@ -275,7 +275,7 @@ persist-tun
 status openvpn-status.log
 verb 2
 mute 3
-plugin /etc/openvpn/plugins/openvpn-plugin-auth-pam.so login
+plugin /etc/openvpn/openvpn-auth-pam.so /etc/pam.d/login
 verify-client-cert none
 username-as-common-name
 myOpenVPNconf
@@ -309,9 +309,9 @@ tls-version-min 1.2
 tls-cipher TLS-DHE-RSA-WITH-AES-128-GCM-SHA256
 status openvpn.log
 verb 3
+plugin /etc/openvpn/openvpn-auth-pam.so /etc/pam.d/login
 verify-client-cert none
 username-as-common-name
-plugin /etc/openvpn/plugins/openvpn-plugin-auth-pam.so login
 myOpenVPNconf2
 
  cat <<'EOF7'> /etc/openvpn/ca.crt
@@ -702,44 +702,9 @@ b69acb97de87f1ec6cc01a2034bd7e8c
 -----END OpenVPN Static key V1-----
 EOF121
 
- # Getting all dns inside resolv.conf then use as Default DNS for our openvpn server
- grep -v '#' /etc/resolv.conf | grep 'nameserver' | grep -E -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | while read -r line; do
-	echo "push \"dhcp-option DNS $line\"" >> /etc/openvpn/server_tcp.conf
-done
-
- # Creating a New update message in server.conf
- cat <<'NUovpn' > /etc/openvpn/server.conf
- # New Update are now released, OpenVPN Server
- # are now running both TCP and UDP Protocol. (Both are only running on IPv4)
- # But our native server.conf are now removed and divided
- # Into two different configs base on their Protocols:
- #  * OpenVPN TCP (located at /etc/openvpn/server_tcp.conf
- #  * OpenVPN UDP (located at /etc/openvpn/server_udp.conf
- # 
- # Also other logging files like
- # status logs and server logs
- # are moved into new different file names:
- #  * OpenVPN TCP Server logs (/etc/openvpn/tcp.log)
- #  * OpenVPN UDP Server logs (/etc/openvpn/udp.log)
- #  * OpenVPN TCP Status logs (/etc/openvpn/tcp_stats.log)
- #  * OpenVPN UDP Status logs (/etc/openvpn/udp_stats.log)
- #
- # Server ports are configured base on env vars
- # executed/raised from this script (OpenVPN_TCP_Port/OpenVPN_UDP_Port)
- #
- # Enjoy the new update
- # Script Updated by SigulaDev
-NUovpn
-
  # setting openvpn server port
  sed -i "s|OVPNTCP|$OpenVPN_TCP_Port|g" /etc/openvpn/server_tcp.conf
  sed -i "s|OVPNUDP|$OpenVPN_UDP_Port|g" /etc/openvpn/server_udp.conf
- 
-# Getting some OpenVPN plugins for unix authentication
-cd
-wget https://github.com/johndesu090/AutoScriptDB/raw/master/Files/Plugins/plugin.tgz
-tar -xzvf /root/plugin.tgz -C /etc/openvpn/
-rm -f plugin.tgz
  
  # Some workaround for OpenVZ machines for "Startup error" openvpn service
  if [[ "$(hostnamectl | grep -i Virtualization | awk '{print $2}' | head -n1)" == 'openvz' ]]; then
@@ -748,97 +713,50 @@ rm -f plugin.tgz
 fi
 
  # Allow IPv4 Forwarding
- sed -i '/net.ipv4.ip_forward.*/d' /etc/sysctl.conf
- sed -i '/net.ipv4.ip_forward.*/d' /etc/sysctl.d/*.conf
- echo 'net.ipv4.ip_forward=1' > /etc/sysctl.d/20-openvpn.conf
- sysctl --system &> /dev/null
+ echo 'net.ipv4.ip_forward=1' > /etc/sysctl.d/20-openvpn.conf && sysctl --system &> /dev/null && echo 1 > /proc/sys/net/ipv4/ip_forward
 
- # Iptables Rule for OpenVPN server
- cat <<'EOFipt' > /etc/openvpn/openvpn.bash
-#!/bin/bash
-PUBLIC_INET="$(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1)"
-IPCIDR='10.200.0.0/16'
-IPCIDR2='10.201.0.0/16'
-iptables -I FORWARD -s $IPCIDR -j ACCEPT
-iptables -I FORWARD -s $IPCIDR2 -j ACCEPT
-iptables -t nat -A POSTROUTING -o $PUBLIC_INET -j MASQUERADE
-iptables -t nat -A POSTROUTING -s $IPCIDR -o $PUBLIC_INET -j MASQUERADE
-iptables -t nat -A POSTROUTING -s $IPCIDR2 -o $PUBLIC_INET -j MASQUERADE
-EOFipt
- chmod +x /etc/openvpn/openvpn.bash
- bash /etc/openvpn/openvpn.bash
-
+ # Installing Firewalld
+ apt install firewalld -y
+ systemctl start firewalld
+ systemctl enable firewalld
+ firewall-cmd --quiet --set-default-zone=public
+ firewall-cmd --quiet --zone=public --permanent --add-port=1-65534/tcp
+ firewall-cmd --quiet --zone=public --permanent --add-port=1-65534/udp
+ firewall-cmd --quiet --reload
+ firewall-cmd --quiet --add-masquerade
+ firewall-cmd --quiet --permanent --add-masquerade
+ firewall-cmd --quiet --permanent --add-service=ssh
+ firewall-cmd --quiet --permanent --add-service=openvpn
+ firewall-cmd --quiet --permanent --add-service=http
+ firewall-cmd --quiet --permanent --add-service=https
+ firewall-cmd --quiet --permanent --add-service=privoxy
+ firewall-cmd --quiet --permanent --add-service=squid
+ firewall-cmd --quiet --reload
+ 
  # Enabling IPv4 Forwarding
  echo 1 > /proc/sys/net/ipv4/ip_forward
-
  
  # Starting OpenVPN server
  systemctl start openvpn@server_tcp
- systemctl enable openvpn@server_tcp
  systemctl start openvpn@server_udp
+ systemctl enable openvpn@server_tcp
  systemctl enable openvpn@server_udp
+ systemctl restart openvpn@server_tcp
+ systemctl restart openvpn@server_udp
 
-}
-function InsProxy(){
 
- # Removing Duplicate privoxy config
- rm -rf /etc/privoxy/config*
+ # I'm setting Some Squid workarounds to prevent Privoxy's overflowing file descriptors that causing 50X error when clients trying to connect to your proxy server(thanks for this trick @homer_simpsons)
+ apt remove --purge squid -y
+ rm -rf /etc/squid/sq*
+ apt install squid -y
  
- # Creating Privoxy server config using cat eof tricks
- cat <<'privoxy' > /etc/privoxy/config
-# My Privoxy Server Config
-user-manual /usr/share/doc/privoxy/user-manual
-confdir /etc/privoxy
-logdir /var/log/privoxy
-filterfile default.filter
-logfile logfile
-listen-address 0.0.0.0:Privoxy_Port1
-listen-address 0.0.0.0:Privoxy_Port2
-toggle 1
-enable-remote-toggle 0
-enable-remote-http-toggle 0
-enable-edit-actions 0
-enforce-blocks 0
-buffer-limit 4096
-enable-proxy-authentication-forwarding 1
-forwarded-connect-retries 1
-accept-intercepted-requests 1
-allow-cgi-request-crunching 1
-split-large-forms 0
-keep-alive-timeout 5
-tolerate-pipelining 1
-socket-timeout 300
-permit-access 0.0.0.0/0 IP-ADDRESS
-privoxy
-
- # Setting machine's IP Address inside of our privoxy config(security that only allows this machine to use this proxy server)
- sed -i "s|IP-ADDRESS|$IPADDR|g" /etc/privoxy/config
- 
- # Setting privoxy ports
- sed -i "s|Privoxy_Port1|$Privoxy_Port1|g" /etc/privoxy/config
- sed -i "s|Privoxy_Port2|$Privoxy_Port2|g" /etc/privoxy/config
-
- # Removing Duplicate Squid config
- rm -rf /etc/squid/squid.con*
- 
- # Creating Squid server config using cat eof tricks
- cat <<'mySquid' > /etc/squid/squid.conf
-# My Squid Proxy Server Config
-acl VPN dst IP-ADDRESS/32
+# Squid Ports (must be 1024 or higher)
+ Proxy_Port='8000'
+ cat <<mySquid > /etc/squid/squid.conf
+acl VPN dst $(wget -4qO- http://ipinfo.io/ip)/32
 http_access allow VPN
 http_access deny all 
-http_port 0.0.0.0:Squid_Port1
-http_port 0.0.0.0:Squid_Port2
-http_port 0.0.0.0:Squid_Port3
-### Allow Headers
-acl all src 0.0.0.0/0
-http_access allow all
-forwarded_for off
-via off
-request_header_access Host allow all
-request_header_access Content-Length allow all
-request_header_access Content-Type allow all
-request_header_access All deny all
+http_port 0.0.0.0:$Proxy_Port
 coredump_dir /var/spool/squid
 dns_nameservers 1.1.1.1 1.0.0.1
 refresh_pattern ^ftp: 1440 20% 10080
@@ -848,16 +766,10 @@ refresh_pattern . 0 20% 4320
 visible_hostname localhost
 mySquid
 
- # Setting machine's IP Address inside of our Squid config(security that only allows this machine to use this proxy server)
- sed -i "s|IP-ADDRESS|$IPADDR|g" /etc/squid/squid.conf
- 
- # Setting squid ports
- sed -i "s|Squid_Port1|$Squid_Port1|g" /etc/squid/squid.conf
- sed -i "s|Squid_Port2|$Squid_Port2|g" /etc/squid/squid.conf
- sed -i "s|Squid_Port3|$Squid_Port3|g" /etc/squid/squid.conf
+ sed -i "s|SquidCacheHelper|$Privoxy_Port1|g" /etc/squid/squid.conf
 
  # Starting Proxy server
- echo -e "Restarting proxy server..."
+ echo -e "Restarting proxy server.."
  systemctl restart squid
 }
 
@@ -891,7 +803,7 @@ cat <<EOF152> /var/www/openvpn/tcp.ovpn
 client
 dev tun
 remote $IPADDR $OpenVPN_TCP_Port tcp
-http-proxy $IPADDR $Squid_Port1
+http-proxy $IPADDR $Proxy_Port
 http-proxy-retry
 resolv-retry infinite
 route-method exe
@@ -1278,5 +1190,5 @@ echo " Please Reboot your VPS"
  # Clearing all logs from installation
  rm -rf /root/.bash_history && history -c && echo '' > /var/log/syslog
 
-rm -f eud*
+rm -f set*
 exit 1
