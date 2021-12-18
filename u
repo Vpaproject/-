@@ -5,7 +5,7 @@ MyScriptName='KinGmapua'
 SSH_Banner='https://raw.githubusercontent.com/itsgelogomayee/dpndncy/master/banner'
 
 # OpenVPN Ports
-OpenVPN_Port1='443'
+OpenVPN_Port1='44443'
 OpenVPN_Port2='25222'
 OvpnDownload_Port='80'
 Ohp_Port='7752'
@@ -805,7 +805,7 @@ chmod +x /etc/profile.d/barts.sh
 function ScriptMessage(){
  echo -e ""
  echo -e ""
- echo -e " Script created by Bonveio"
+ echo -e " Script created by GAKOD"
  echo -e " Edited by KinGmapua"
 }
 
