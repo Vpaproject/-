@@ -761,52 +761,52 @@ $(cat /etc/openvpn/ta.key)
 EOF17
 
 # setting port ssh
-sed -i '/#Port 22/a Port 143' /etc/ssh/sshd_config
-sed -i '/#Port 22/a Port  90' /etc/ssh/sshd_config
-sed -i 's/#Port 22/Port  22/g' /etc/ssh/sshd_config
-/etc/init.d/ssh restart
+# sed -i '/#Port 22/a Port 143' /etc/ssh/sshd_config
+# sed -i '/#Port 22/a Port  90' /etc/ssh/sshd_config
+# sed -i 's/#Port 22/Port  22/g' /etc/ssh/sshd_config
+# /etc/init.d/ssh restart
 
 # install dropbear
-apt-get -y install dropbear
-sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=442/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 109 -p 110 -p 80"/g' /etc/default/dropbear
-echo "/bin/false" >> /etc/shells
-/etc/init.d/dropbear restart
+# apt-get -y install dropbear
+# sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
+# sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=442/g' /etc/default/dropbear
+# sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 109 -p 110 -p 80"/g' /etc/default/dropbear
+# echo "/bin/false" >> /etc/shells
+# /etc/init.d/dropbear restart
 
 # install stunnel
-apt install stunnel4 -y
-cat > /etc/stunnel/stunnel.conf <<-END
-cert = /etc/stunnel/stunnel.pem
-client = no
-socket = a:SO_REUSEADDR=1
-socket = l:TCP_NODELAY=1
-socket = r:TCP_NODELAY=1
+# apt install stunnel4 -y
+# cat > /etc/stunnel/stunnel.conf <<-END
+# cert = /etc/stunnel/stunnel.pem
+# client = no
+# socket = a:SO_REUSEADDR=1
+# socket = l:TCP_NODELAY=1
+# socket = r:TCP_NODELAY=1
 
-[dropbear]
-accept = 446
-connect = 127.0.0.1:109
+# [dropbear]
+# accept = 446
+# connect = 127.0.0.1:109
 
-[dropbear]
-accept = 777
-connect = 127.0.0.1:22
+# [dropbear]
+# accept = 777
+# connect = 127.0.0.1:22
 
-[openvpn]
-accept = 587
-connect = 127.0.0.1:1103
+# [openvpn]
+# accept = 587
+# connect = 127.0.0.1:1103
 
-END
+# END
 
 # make a certificate
-openssl genrsa -out key.pem 2048
-openssl req -new -x509 -key key.pem -out cert.pem -days 1095 \
--subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
-cat key.pem cert.pem >> /etc/stunnel/stunnel.pem
+# openssl genrsa -out key.pem 2048
+# openssl req -new -x509 -key key.pem -out cert.pem -days 1095 \
+# -subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
+# cat key.pem cert.pem >> /etc/stunnel/stunnel.pem
 
 # konfigurasi stunnel
-sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
-/etc/init.d/stunnel4 restart
-cd
+# sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
+# /etc/init.d/stunnel4 restart
+# cd
 
  # Setting template's correct name,IP address and nginx Port
  sed -i "s|MyScriptName|$MyScriptName|g" /var/www/openvpn/index.html
@@ -829,12 +829,7 @@ function ip_address(){
   [ ! -z "${IP}" ] && echo "${IP}" || echo
 } 
 IPADDR="$(ip_address)"
-function slowdns() {
-apt update; apt upgrade -y; rm -rf install; wget https://raw.githubusercontent.com/xamjyss143/slow-dns/main/install; chmod +x install; ./install
-bash /etc/slowdns/slowdns-ssh
-startdns
 
-}
 function ConfMenu(){
 echo -e " Creating Menu scripts.."
 
@@ -885,7 +880,7 @@ fi
  cd ~ 
  bash /etc/profile.d/barts.sh
  ScriptMessage
- wget https://raw.githubusercontent.com/89870must73/xd/main/ohp && bash ohp
+# wget https://raw.githubusercontent.com/89870must73/xd/main/ohp && bash ohp
  # Showing additional information from installating this script
  echo -e ""
  echo -e " Success Installation"
