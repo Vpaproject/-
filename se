@@ -116,7 +116,7 @@ MyDropbear
  
  # Restarting dropbear service
  systemctl restart dropbear
-}
+
  # Checking if openvpn folder is accidentally deleted or purged
  if [[ ! -e /etc/openvpn ]]; then
   mkdir -p /etc/openvpn
