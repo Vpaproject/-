@@ -2,7 +2,7 @@
 MyScriptName='KinGmapua'
 # Your SSH Banner
 SSH_Banner='https://raw.githubusercontent.com/itsgelogomayee/dpndncy/master/banner'
-OpenVPN_Port1='1102'
+OpenVPN_Port1='1103'
 OpenVPN_Port2='25222'
 OvpnDownload_Port='81'
 # Server local time
