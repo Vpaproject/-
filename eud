@@ -93,7 +93,7 @@ function InstWebmin(){
  
  # Then restart to take effect
  # systemctl restart webmin
-# }
+}
 
 function InstSSH(){
  # Removing some duplicated sshd server configs
