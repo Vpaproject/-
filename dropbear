@@ -1,23 +1,27 @@
-# disabled because OpenSSH is installed
-# change to NO_START=0 to enable Dropbear
-NO_START=0
+#!/bin/bash
+clear
+if [[ "$EUID" -ne 0 ]]; then
+    echo -e "\033[1;31mScript need to be run as root!\033[0m"; exit 1
+fi
 
-# the TCP port that Dropbear listens on
+apt-get -qq update
+DEBIAN_FRONTEND=noninteractive apt-get -y -qq install dropbear
+
+echo 'NO_START=0
 DROPBEAR_PORT=800
+DROPBEAR_EXTRA_ARGS="-p 440 -p 441 -p 422"
+DROPBEAR_BANNER="/etc/issue.net"
+DROPBEAR_RSAKEY="/etc/dropbear/dropbear_rsa_host_key"
+DROPBEAR_DSSKEY="/etc/dropbear/dropbear_dss_host_key"
+DROPBEAR_ECDSAKEY="/etc/dropbear/dropbear_ecdsa_host_key"
+DROPBEAR_RECEIVE_WINDOW=65536' > /etc/default/dropbear
+systemctl restart dropbear
 
-# any additional arguments for Dropbear
-DROPBEAR_EXTRA_ARGS="-p 800"
-
-# specify an optional banner file containing a message to be
-# sent to clients before they connect, such as "/etc/issue.net"
-DROPBEAR_BANNER=""
-
-# RSA hostkey file (default: /etc/dropbear/dropbear_rsa_host_key)
-#DROPBEAR_RSAKEY="/etc/dropbear/dropbear_rsa_host_key"
-
-# DSS hostkey file (default: /etc/dropbear/dropbear_dss_host_key)
-#DROPBEAR_DSSKEY="/etc/dropbear/dropbear_dss_host_key"
-
-# Receive window size - this is a tradeoff between memory and
-# network performance
-DROPBEAR_RECEIVE_WINDOW=65536
+echo
+echo -e "\033[1;32mCongratulation, We are done with the dropbear installation.\033[0m"
+echo
+echo 'Use my referral link https://m.do.co/c/a28a40414d6a'
+echo 'to gets $100 credit into your DigitalOcean account.'
+echo 'Created by Doctype, Powered by Cybertize'
+echo 'Copyright 2021, Allright reserved.'
+echo; sleep 5
