@@ -900,8 +900,10 @@ client
 dev tun
 persist-tun
 proto tcp
-remote IP-ADDRESS 110
-http-proxy IP-ADDRESS 8000
+# remote IP-ADDRESS 1103
+# http-proxy IP-ADDRESS 8000
+# remote 127.0.0.1 1103
+# route IP-ADDRESS 255.255.255.255 net_gateway
 persist-remote-ip
 resolv-retry infinite
 connect-retry 0 1
@@ -1199,7 +1201,6 @@ verb 0
 nice -20
 log /dev/null
 EOFsunnlec
-
 cat <<"EOFohp2" > /var/www/openvpn/OHPTCPConfig_EC.ovpn
 # OpenVPN Server build vOPENVPN_SERVER_VERSION
 # Server Location: OPENVPN_SERVER_LOCATION
