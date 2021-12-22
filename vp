@@ -1,6 +1,6 @@
 #!/bin/bash
 # OpenVPN Ports
-OpenVPN_Port1='1194'
+OpenVPN_Port1='1103'
 OpenVPN_Port2='25222'
 Ohp_Port='7752'
 Squid_Port1='8000'
