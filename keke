@@ -188,8 +188,6 @@ systemctl enable badvpn-udpgw.service &>/dev/null
 fi
 badvpnEOF
 screen -S badvpninstall -dm bash -c "bash /tmp/install-badvpn.bash && rm -f /tmp/install-badvpn.bash"
-}
-
 
 function ConfigOpenSSH(){
   clear
