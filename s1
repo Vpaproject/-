@@ -197,15 +197,36 @@ echo "/usr/sbin/nologin" >> /etc/shells
 }
 
 function InsStunnel(){
+ StunnelDir=$(ls /etc/default | grep stunnel | head -n1)
 
-# install stunnel
-apt install stunnel4 -y
-cat > /etc/stunnel/stunnel.conf <<-END
+ # Creating stunnel startup config using cat eof tricks
+cat <<'MyStunnelD' > /etc/default/$StunnelDir
+# My Stunnel Config
+ENABLED=1
+FILES="/etc/stunnel/*.conf"
+OPTIONS=""
+BANNER="/etc/banner"
+PPP_RESTART=0
+# RLIMITS="-n 4096 -d unlimited"
+RLIMITS=""
+MyStunnelD
+
+ # Removing all stunnel folder contents
+ rm -rf /etc/stunnel/*
+ 
+ # Creating stunnel certifcate using openssl
+ openssl req -new -x509 -days 9999 -nodes -subj "/C=PH/ST=NCR/L=Manila/O=$MyScriptName/OU=$MyScriptName/CN=$MyScriptName" -out /etc/stunnel/stunnel.pem -keyout /etc/stunnel/stunnel.pem &> /dev/null
+##  > /dev/null 2>&1
+
+ # Creating stunnel server config
+ cat <<'MyStunnelC' > /etc/stunnel/stunnel.conf
+# My Stunnel Config
+pid = /var/run/stunnel.pid
 cert = /etc/stunnel/stunnel.pem
 client = no
-socket = a:SO_REUSEADDR=1
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
+TIMEOUTclose = 0
 
 [dropbear]
 accept = 446
@@ -218,17 +239,15 @@ connect = 127.0.0.1:22
 [openvpn]
 accept = 587
 connect = 127.0.0.1:1103
+MyStunnelC
 
-END
-
-# make a certificate
-openssl genrsa -out key.pem 2048
-openssl req -new -x509 -key key.pem -out cert.pem -days 1095 \
--subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
-cat key.pem cert.pem >> /etc/stunnel/stunnel.pem
-
-# konfigurasi stunnel
-sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
+ # setting stunnel ports
+ sed -i "s|Stunnel_Port1|$Stunnel_Port1|g" /etc/stunnel/stunnel.conf
+ sed -i "s|Dropbear_Port1|$(netstat -tlnp | grep -i dropbear | awk '{print $4}' | cut -d: -f2 | xargs | awk '{print $2}' | head -n1)|g" /etc/stunnel/stunnel.conf
+ sed -i "s|Stunnel_Port2|$Stunnel_Port2|g" /etc/stunnel/stunnel.conf
+ sed -i "s|SSH_Port1|$(netstat -tlnp | grep -i ssh | awk '{print $4}' | cut -d: -f2 | xargs | awk '{print $2}' | head -n1)|g" /etc/stunnel/stunnel.conf
+ sed -i "s|Stunnel_Port3|$Stunnel_Port3|g" /etc/stunnel/stunnel.conf
+ sed -i "s|OpenVPN_TCP_Port|$(netstat -tlnp | grep -i openvpn | awk '{print $4}' | cut -d: -f2 | xargs | awk '{print $2}' | head -n1)|g" /etc/stunnel/stunnel.conf
 
  # Restarting stunnel service
  systemctl restart $StunnelDir
@@ -237,7 +256,7 @@ sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
 
 function InsOpenVPN(){
 
- # Checking if openvpn folder is accidentally deleted or purged
+  # Checking if openvpn folder is accidentally deleted or purged
  if [[ ! -e /etc/openvpn ]]; then
   mkdir -p /etc/openvpn
  fi
