@@ -86,7 +86,7 @@ ca ca.crt
 cert lostserver.crt
 key lostserver.key
 dh dh2048.pem
-tls-auth ta.key 0
+tls-auth tls-auth.key 0
 auth SHA256
 cipher AES-128-CBC
 tls-server
@@ -274,7 +274,7 @@ echo '<key>' >> /etc/openvpn/udp.ovpn
 cat /etc/openvpn/lostserver.key >> /etc/openvpn/udp.ovpn
 echo '</key>' >> /etc/openvpn/udp.ovpn
 echo '<tls-auth>' >> /etc/openvpn/udp.ovpn
-cat /etc/openvpn/ta.key >> /etc/openvpn/udp.ovpn
+cat /etc/openvpn/tls-auth.key >> /etc/openvpn/udp.ovpn
 echo '</tls-auth>' >> /etc/openvpn/udp.ovpn
 
 # Copy config OpenVPN client ke home directory root agar mudah didownload ( UDP 2500 )
