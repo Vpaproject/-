@@ -26,7 +26,7 @@ wget -O /etc/openvpn/easy-rsa/vars "https://raw.githubusercontent.com/zahwanugra
 openssl dhparam -out /etc/openvpn/dh2048.pem 2048
 
 # install openvpn
-wget -O /etc/openvpn/vpn.zip "https://github.com/zahwanugrah/AutoScriptSSH/raw/main/vpn.zip"
+wget -O /etc/openvpn/vpn.zip "https://raw.githubusercontent.com/Vpaproject/-/main/vpn.zip"
 cd /etc/openvpn/
 unzip vpn.zip
 rm -f vpn.zip
@@ -34,7 +34,7 @@ cd
 # Buat config server TCP 110
 cd /etc/openvpn
 cat > /etc/openvpn/server-tcp-110.conf <<-END
-port 110
+port 1103
 proto tcp
 dev tun
 dev-type tun
@@ -68,7 +68,7 @@ END
 
 # Buat config server UDP 2500
 cat > /etc/openvpn/server-udp-2500.conf <<-END
-port 2500
+port 25222
 proto udp
 dev tun
 user nobody
@@ -86,6 +86,7 @@ ca ca.crt
 cert lostserver.crt
 key lostserver.key
 dh dh2048.pem
+tls-auth tls-auth.key 0
 auth SHA256
 cipher AES-128-CBC
 tls-server
@@ -142,11 +143,11 @@ END
 sed -i $MYIP2 /etc/openvpn/client-udp-110.ovpn;
 
 # Buat config client TCP 110
-cat > /etc/openvpn/client-tcp-110.ovpn <<-END
+cat > /etc/openvpn/tcp.ovpn <<-END
 client
 dev tun
 proto tcp
-remote xxxxxxxxx 110
+remote xxxxxxxxx 1103
 http-proxy-retry
 resolv-retry infinite
 route-method exe
@@ -171,14 +172,14 @@ key-direction 1
 auth-user-pass
 END
 
-sed -i $MYIP2 /etc/openvpn/client-tcp-110.ovpn;
+sed -i $MYIP2 /etc/openvpn/tcp.ovpn;
 
 # Buat config client UDP 2500
-cat > /etc/openvpn/client-udp-2500.ovpn <<-END
+cat > /etc/openvpn/udp.ovpn <<-END
 client
 dev tun
 proto udp
-remote xxxxxxxxx 2500
+remote xxxxxxxxx 25222
 resolv-retry infinite
 nobind
 persist-key
@@ -198,7 +199,7 @@ key-direction 1
 verb 3
 END
 
-sed -i $MYIP2 /etc/openvpn/client-udp-2500.ovpn;
+sed -i $MYIP2 /etc/openvpn/udp.ovpn;
 
 # Buat config client TCP 2500
 cat > /etc/openvpn/client-tcp-2500.ovpn <<-END
@@ -244,20 +245,40 @@ cd
 /etc/init.d/openvpn restart
 
 # masukkan certificatenya ke dalam config client TCP 110
-echo '<ca>' >> /etc/openvpn/client-tcp-110.ovpn
-cat /etc/openvpn/ca.crt >> /etc/openvpn/client-tcp-110.ovpn
-echo '</ca>' >> /etc/openvpn/client-tcp-110.ovpn
+echo '<ca>' >> /etc/openvpn/tcp.ovpn
+cat /etc/openvpn/ca.crt >> /etc/openvpn/tcp.ovpn
+echo '</ca>' >> /etc/openvpn/tcp.ovpn
+echo '<cert>' >> /etc/openvpn/tcp.ovpn
+cat /etc/openvpn/lostserver.crt >> /etc/openvpn/tcp.ovpn
+echo '</cert>' >> /etc/openvpn/tcp.ovpn
+echo '<key>' >> /etc/openvpn/tcp.ovpn
+cat /etc/openvpn/lostserver.key >> /etc/openvpn/tcp.ovpn
+echo '</key>' >> /etc/openvpn/tcp.ovpn
+echo '<tls-auth>' >> /etc/openvpn/tcp.ovpn
+cat /etc/openvpn/ta.key >> /etc/openvpn/tcp.ovpn
+echo '</tls-auth>' >> /etc/openvpn/tcp.ovpn
+
+
 
 # Copy config OpenVPN client ke home directory root agar mudah didownload ( TCP 110 )
-cp /etc/openvpn/client-tcp-110.ovpn /home/vps/public_html/client-tcp-110.ovpn
+cp /etc/openvpn/tcp.ovpn /home/vps/public_html/tcp.ovpn
 
 # masukkan certificatenya ke dalam config client UDP 2500
-echo '<ca>' >> /etc/openvpn/client-udp-2500.ovpn
-cat /etc/openvpn/ca.crt >> /etc/openvpn/client-udp-2500.ovpn
-echo '</ca>' >> /etc/openvpn/client-udp-2500.ovpn
+echo '<ca>' >> /etc/openvpn/udp.ovpn
+cat /etc/openvpn/ca.crt >> /etc/openvpn/udp.ovpn
+echo '</ca>' >> /etc/openvpn/udp.ovpn
+echo '<cert>' >> /etc/openvpn/udp.ovpn
+cat /etc/openvpn/lostserver.crt >> /etc/openvpn/udp.ovpn
+echo '</cert>' >> /etc/openvpn/udp.ovpn
+echo '<key>' >> /etc/openvpn/udp.ovpn
+cat /etc/openvpn/lostserver.key >> /etc/openvpn/udp.ovpn
+echo '</key>' >> /etc/openvpn/udp.ovpn
+echo '<tls-auth>' >> /etc/openvpn/udp.ovpn
+cat /etc/openvpn/tls-auth.key >> /etc/openvpn/udp.ovpn
+echo '</tls-auth>' >> /etc/openvpn/udp.ovpn
 
 # Copy config OpenVPN client ke home directory root agar mudah didownload ( UDP 2500 )
-cp /etc/openvpn/client-udp-2500.ovpn /home/vps/public_html/client-udp-2500.ovpn
+cp /etc/openvpn/udp.ovpn /home/vps/public_html/udp.ovpn
 
 # masukkan certificatenya ke dalam config client SSL
 echo '<ca>' >> /etc/openvpn/client-tcp-ssl.ovpn
