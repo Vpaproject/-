@@ -122,30 +122,37 @@ cd /etc/openvpn/easy-rsa
 openvpn --genkey --secret pki/private/ta.key
 cd
 mkdir /etc/openvpn/key
-cp /etc/openvpn/easy-rsa/pki/issued/server.crt /etc/openvpn/key/
-cp /etc/openvpn/easy-rsa/pki/ca.crt /etc/openvpn/key/
-cp /etc/openvpn/easy-rsa/pki/dh.pem /etc/openvpn/key/
-cp /etc/openvpn/easy-rsa/pki/private/server.key /etc/openvpn/key/
-cp /etc/openvpn/easy-rsa/pki/private/ta.key /etc/openvpn/key/
-wget -qO /etc/openvpn/server-udp.conf "https://raw.githubusercontent.com/fiqoh/ubuntu/main/server-udp.conf"
-wget -qO /etc/openvpn/server-tcp.conf "https://raw.githubusercontent.com/fiqoh/ubuntu/main/server-tcp.conf"
-sed -i "s|#AUTOSTART="all"|AUTOSTART="all"|g" /etc/default/openvpn
-echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
-systemctl start openvpn@server-udp
-systemctl start openvpn@server-tcp
-systemctl enable openvpn@server-udp
-systemctl enable openvpn@server-tcp
-  
+cp /etc/openvpn/easy-rsa/pki/issued/server.crt /etc/openvpn/
+cp /etc/openvpn/easy-rsa/pki/ca.crt /etc/openvpn/
+cp /etc/openvpn/easy-rsa/pki/dh.pem /etc/openvpn/
+cp /etc/openvpn/easy-rsa/pki/private/server.key /etc/openvpn/
+cp /etc/openvpn/easy-rsa/pki/private/ta.key /etc/openvpn/
 
+# server settings
+cd /etc/openvpn/
+wget -O /etc/openvpn/server.conf "https://raw.githubusercontent.com/ara-rangers/vps/master/server.conf"
+systemctl start openvpn@server
+sysctl -w net.ipv4.ip_forward=1
+sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
+iptables -t nat -I POSTROUTING -s 192.168.100.0/24 -o eth0 -j MASQUERADE
+iptables -t nat -I POSTROUTING -o eth0 -j MASQUERADE
+iptables-save > /etc/iptables.up.rules
+wget -O /etc/network/if-up.d/iptables "https://raw.githubusercontent.com/ara-rangers/vps/master/iptables"
+chmod +x /etc/network/if-up.d/iptables
+sed -i 's|LimitNPROC|#LimitNPROC|g' /lib/systemd/system/openvpn@.service
+systemctl daemon-reload
+/etc/init.d/openvpn restart
+wget -qO /etc/openvpn/openvpn.bash "https://raw.githubusercontent.com/ara-rangers/vps/master/openvpn.bash"
+chmod +x /etc/openvpn/openvpn.bash
 
 # openvpn config
-wget -O /etc/openvpn/client-tcp.ovpn "https://raw.githubusercontent.com/fiqoh/ubuntu/main/client-tcp.ovpn"
-sed -i $MYIP2 /etc/openvpn/client-tcp.ovpn.ovpn;
-echo '<ca>' >> /etc/openvpn/client-tcp.ovpn.ovpn
-cat /etc/openvpn/ca.crt >> /etc/openvpn/client-tcp.ovpn.ovpn
-echo '</ca>' >> /etc/openvpn/client-tcp.ovpn.ovpn
-cp client-tcp.ovpn /home/vps/public_html/
-sed -i "s|xxx.xxx.xxx.xxx|$ipAddress|g" /home/vps/public_html/client-tcp.ovpn
+wget -O /etc/openvpn/client.ovpn "https://raw.githubusercontent.com/ara-rangers/vps/master/client.conf"
+sed -i $MYIP2 /etc/openvpn/client.ovpn;
+echo '<ca>' >> /etc/openvpn/client.ovpn
+cat /etc/openvpn/ca.crt >> /etc/openvpn/client.ovpn
+echo '</ca>' >> /etc/openvpn/client.ovpn
+cp client.ovpn /home/vps/public_html/
+
 
 # Install BadVPN UDPGw
 cd
